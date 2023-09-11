@@ -35,14 +35,14 @@ const bundle: Map<string, Entry> = new Map([
       mime: 'application/octet-stream'
     }
   ],
-  [
-    'large',
-    {
-      url: require('../bundle/models/17b7466d93bb60b0e88affa2b0e8b3eee309c7de183d394ce4b956339ebd95e6.onnx'),
-      size: 176173887,
-      mime: 'application/octet-stream'
-    }
-  ],
+  // [
+  //   'large',
+  //   {
+  //     url: require('../bundle/models/17b7466d93bb60b0e88affa2b0e8b3eee309c7de183d394ce4b956339ebd95e6.onnx'),
+  //     size: 176173887,
+  //     mime: 'application/octet-stream'
+  //   }
+  // ],
   [
     'ort-wasm-simd-threaded.jsep.wasm',
     {
