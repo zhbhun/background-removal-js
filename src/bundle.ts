@@ -3,7 +3,7 @@ export { preload, load };
 import { Config } from './schema';
 
 type Entry = {
-  url: string;
+  url: string | string[];
   size: number;
   mime: string;
 };
@@ -19,19 +19,30 @@ const bundle: Map<string, Entry> = new Map([
   [
     'medium',
     {
-      url: require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb.onnx'),
+      // url: require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb.onnx'),
+      url: [
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-aa.onnx'),
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ab.onnx'),
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ac.onnx'),
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ad.onnx'),
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ae.onnx'),
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-af.onnx'),
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ag.onnx'),
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ah.onnx'),
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ai.onnx')
+      ],
       size: 88188479,
       mime: 'application/octet-stream'
     }
   ],
-  // [
-  //   'large',
-  //   {
-  //     url: require('../bundle/models/17b7466d93bb60b0e88affa2b0e8b3eee309c7de183d394ce4b956339ebd95e6.onnx'),
-  //     size: 176173887,
-  //     mime: 'application/octet-stream'
-  //   }
-  // ],
+  [
+    'large',
+    {
+      url: require('../bundle/models/17b7466d93bb60b0e88affa2b0e8b3eee309c7de183d394ce4b956339ebd95e6.onnx'),
+      size: 176173887,
+      mime: 'application/octet-stream'
+    }
+  ],
   [
     'ort-wasm-simd-threaded.jsep.wasm',
     {
@@ -84,24 +95,92 @@ const bundle: Map<string, Entry> = new Map([
 
 async function load(key: string, config: Config) {
   const entry = bundle.get(key)!;
-  let url = entry.url;
-  if (config.publicPath) {
-    url = new URL(url.split('/').pop()!, config.publicPath).toString();
-  }
 
-  const response = await fetch(url, config.fetchArgs);
+  if (Array.isArray(entry.url)) {
+    const controllers: Record<number, AbortController | undefined> = {};
+    const loaded: number[] = Array(entry.url.length);
+    const chunks = await Promise.all(
+      entry.url.map(async (item, index) => {
+        const controller =
+          typeof AbortController !== undefined
+            ? new AbortController()
+            : undefined;
+        if (controller) {
+          controllers[index] = controller;
+        }
+        loaded[index] = 0;
 
-  const chunks = config.progress
-    ? await fetchChunked(response, entry, config, key)
-    : [await response.blob()];
+        let url = item;
+        if (config.publicPath) {
+          url = new URL(url.split('/').pop()!, config.publicPath).toString();
+        }
+        const response = await fetch(url, {
+          signal: controller?.signal,
+          ...config.fetchArgs
+        });
 
-  const data = new Blob(chunks, { type: entry.mime });
-  if (data.size !== entry.size) {
-    throw new Error(
-      `Failed to fetch ${key} with size ${entry.size} but got ${data.size}`
+        return (
+          config.progress
+            ? new Blob(
+                await fetchChunked(
+                  response,
+                  entry,
+                  {
+                    ...config,
+                    progress(key, current) {
+                      loaded[index] = current;
+                      config.progress?.(
+                        key,
+                        loaded.reduce((rcc, item) => rcc + item, 0),
+                        entry.size
+                      );
+                    }
+                  },
+                  key
+                )
+              ).arrayBuffer()
+            : (await response.blob()).arrayBuffer()
+        )
+          .then((result) => {
+            controllers[index] = undefined;
+            return result;
+          })
+          .catch((error) => {
+            (entry.url as string[]).forEach((_, index) => {
+              controllers[index]?.abort();
+              controllers[index] = undefined;
+            });
+            throw error;
+          });
+      })
     );
+    const data = new Blob(chunks, { type: entry.mime });
+    if (data.size !== entry.size) {
+      throw new Error(
+        `Failed to fetch ${key} with size ${entry.size} but got ${data.size}`
+      );
+    }
+    return data;
+  } else {
+    let url = entry.url;
+    if (config.publicPath) {
+      url = new URL(url.split('/').pop()!, config.publicPath).toString();
+    }
+
+    const response = await fetch(url, config.fetchArgs);
+
+    const chunks = config.progress
+      ? await fetchChunked(response, entry, config, key)
+      : [await response.blob()];
+
+    const data = new Blob(chunks, { type: entry.mime });
+    if (data.size !== entry.size) {
+      throw new Error(
+        `Failed to fetch ${key} with size ${entry.size} but got ${data.size}`
+      );
+    }
+    return data;
   }
-  return data;
 }
 
 async function fetchChunked(

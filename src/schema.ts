@@ -28,7 +28,7 @@ const ConfigSchema = z
       .returns(z.undefined())
       .describe('Progress callback.')
       .optional(),
-    model: z.enum(['small', 'medium']).default('medium')
+    model: z.enum(['small', 'medium', 'large']).default('medium')
   })
   .default({});
 
