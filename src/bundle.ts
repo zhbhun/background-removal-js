@@ -8,14 +8,14 @@ type Entry = {
   mime: string;
 };
 const bundle: Map<string, Entry> = new Map([
-  [
-    'small',
-    {
-      url: require('../bundle/models/7001d60734fdc112dd9c062635fb59cd401fb82a9d4213134bce4dbd655c803a.onnx'),
-      size: 44342436,
-      mime: 'application/octet-stream'
-    }
-  ],
+  // [
+  //   'small',
+  //   {
+  //     url: require('../bundle/models/7001d60734fdc112dd9c062635fb59cd401fb82a9d4213134bce4dbd655c803a.onnx'),
+  //     size: 44342436,
+  //     mime: 'application/octet-stream'
+  //   }
+  // ],
   [
     'medium',
     {
