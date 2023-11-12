@@ -79,12 +79,15 @@ function calculateProportionalSize(
   maxWidth: number,
   maxHeight: number
 ): [number, number] {
-  const widthRatio = maxWidth / originalWidth;
-  const heightRatio = maxHeight / originalHeight;
-  const scalingFactor = Math.min(widthRatio, heightRatio);
-  const newWidth = Math.floor(originalWidth * scalingFactor);
-  const newHeight = Math.floor(originalHeight * scalingFactor);
-  return [newWidth, newHeight];
+  if (originalWidth > maxWidth || originalHeight > maxHeight) {
+    const widthRatio = maxWidth / originalWidth;
+    const heightRatio = maxHeight / originalHeight;
+    const scalingFactor = Math.min(widthRatio, heightRatio);
+    const newWidth = Math.floor(originalWidth * scalingFactor);
+    const newHeight = Math.floor(originalHeight * scalingFactor);
+    return [newWidth, newHeight];
+  }
+  return [originalWidth, originalHeight];
 }
 
 function isAbsoluteURL(url: string): boolean {

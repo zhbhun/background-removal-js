@@ -7,9 +7,40 @@ type Entry = {
   size: number;
   mime: string;
 };
+
+export const MODEL_RESOLUTION = {
+  'u2netp': 320,
+  'silueta': 320,
+  'imgly_small': 1024,
+  'imgly_medium': 1024,
+};
+
 const bundle: Map<string, Entry> = new Map([
   [
-    'small',
+    'u2netp',
+    {
+      url: require('../bundle/models/u2netp.onnx'),
+      size: 4574861,
+      mime: 'application/octet-stream',
+    }
+  ],
+  [
+    'silueta',
+    {
+      // url: require('../bundle/models/silueta.onnx'),
+      url: [
+        require('../bundle/models/silueta-aa.onnx'),
+        require('../bundle/models/silueta-ab.onnx'),
+        require('../bundle/models/silueta-ac.onnx'),
+        require('../bundle/models/silueta-ad.onnx'),
+        require('../bundle/models/silueta-ae.onnx')
+      ],
+      size: 44173029,
+      mime: 'application/octet-stream',
+    }
+  ],
+  [
+    'imgly_small',
     {
       // url: require('../bundle/models/7001d60734fdc112dd9c062635fb59cd401fb82a9d4213134bce4dbd655c803a.onnx'),
       url: [
@@ -23,33 +54,24 @@ const bundle: Map<string, Entry> = new Map([
       mime: 'application/octet-stream'
     }
   ],
-  // [
-  //   'medium',
-  //   {
-  //     // url: require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb.onnx'),
-  //     url: [
-  //       require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-aa.onnx'),
-  //       require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ab.onnx'),
-  //       require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ac.onnx'),
-  //       require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ad.onnx'),
-  //       require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ae.onnx'),
-  //       require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-af.onnx'),
-  //       require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ag.onnx'),
-  //       require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ah.onnx'),
-  //       require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ai.onnx')
-  //     ],
-  //     size: 88188479,
-  //     mime: 'application/octet-stream'
-  //   }
-  // ],
-  // [
-  //   'large',
-  //   {
-  //     url: require('../bundle/models/17b7466d93bb60b0e88affa2b0e8b3eee309c7de183d394ce4b956339ebd95e6.onnx'),
-  //     size: 176173887,
-  //     mime: 'application/octet-stream'
-  //   }
-  // ],
+  [
+    'imgly_medium',
+    {
+      url: [
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-aa.onnx'),
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ab.onnx'),
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ac.onnx'),
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ad.onnx'),
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ae.onnx'),
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-af.onnx'),
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ag.onnx'),
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ah.onnx'),
+        require('../bundle/models/b6e8497ba978a6f5fbb647e419d2696cd80df5a23cb6a8ea532021911bd76acb-ai.onnx')
+      ],
+      size: 88188479,
+      mime: 'application/octet-stream'
+    }
+  ],
   [
     'ort-wasm-simd-threaded.jsep.wasm',
     {
@@ -70,7 +92,7 @@ const bundle: Map<string, Entry> = new Map([
     'ort-wasm-simd-threaded.wasm',
     {
       url: require('../node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.wasm'),
-      size: 10281838,
+      size: 10800625,
       mime: 'application/wasm'
     }
   ],
@@ -78,7 +100,7 @@ const bundle: Map<string, Entry> = new Map([
     'ort-wasm-simd.wasm',
     {
       url: require('../node_modules/onnxruntime-web/dist/ort-wasm-simd.wasm'),
-      size: 10335238,
+      size: 10842356,
       mime: 'application/wasm'
     }
   ],
@@ -86,7 +108,7 @@ const bundle: Map<string, Entry> = new Map([
     'ort-wasm-threaded.wasm',
     {
       url: require('../node_modules/onnxruntime-web/dist/ort-wasm-threaded.wasm'),
-      size: 9413659,
+      size: 9801743,
       mime: 'application/wasm'
     }
   ],
@@ -94,7 +116,7 @@ const bundle: Map<string, Entry> = new Map([
     'ort-wasm.wasm',
     {
       url: require('../node_modules/onnxruntime-web/dist/ort-wasm.wasm'),
-      size: 9487920,
+      size: 9862304,
       mime: 'application/wasm'
     }
   ]

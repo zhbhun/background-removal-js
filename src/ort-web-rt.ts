@@ -78,23 +78,18 @@ function createOnnxRuntime(config: any): Imports {
 
       return session;
     },
-    runSession: async (
-      session: any,
-      inputs: [string, Tensor][],
-      outputs: [string]
-    ) => {
-      const feeds: Record<string, any> = {};
-      for (const [key, tensor] of inputs) {
-        feeds[key] = new ort.Tensor(
+    runSession: async (session: ort.InferenceSession, tensor: Tensor) => {
+      const feeds: Record<string, any> = {
+        [session.inputNames[0]]: new ort.Tensor(
           'float32',
           new Float32Array(tensor.data),
           tensor.shape
-        );
-      }
+        )
+      };
       const outputData = await session.run(feeds, {});
       const outputKVPairs: Tensor[] = [];
 
-      for (const key of outputs) {
+      for (const key of session.outputNames) {
         let output: ort.Tensor = outputData[key];
         let tensor: Tensor = {
           data: output.data as Float32Array,

@@ -28,7 +28,9 @@ const ConfigSchema = z
       .returns(z.undefined())
       .describe('Progress callback.')
       .optional(),
-    model: z.enum(['small']).default('small')
+    model: z
+      .enum(['u2netp', 'silueta', 'imgly_small', 'imgly_medium'])
+      .default('imgly_medium')
   })
   .default({});
 

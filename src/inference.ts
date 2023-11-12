@@ -1,18 +1,20 @@
+import * as ort from 'onnxruntime-web';
+import { MODEL_RESOLUTION } from './bundle';
 import { imageDataResize, imageDataToFloat32Array } from './utils';
 import { Imports } from './tensor';
 import { calculateProportionalSize } from './utils';
 import { Config } from './schema';
 
+const MAX_RESOLUTION = 2048;
+
 export async function runInference(
   imageData: ImageData,
   config: Config,
   imports: Imports,
-  session: any
+  session: ort.InferenceSession
 ): Promise<ImageData> {
   if (config.progress) config.progress('compute:inference', 0, 1);
-  const resolution = 1024;
-  const src_width = imageData.width;
-  const src_height = imageData.height;
+  const resolution = MODEL_RESOLUTION[config.model] || 320;
 
   const dims = [1, 3, resolution, resolution];
   let tensorImage = await imageDataResize(imageData, resolution, resolution);
@@ -20,29 +22,42 @@ export async function runInference(
 
   const predictionsDict = await imports.runSession(
     session,
-    [['input', { data: inputTensorData, shape: dims, dataType: 'float32' }]],
-    ['output']
+    { data: inputTensorData, shape: dims, dataType: 'float32' }
   );
 
-  const stride = resolution * resolution;
-
-  for (let i = 0; i < 4 * stride; i += 4) {
+  const stride = 4 * resolution * resolution;
+  for (let i = 0; i < stride; i += 4) {
     let idx = i / 4;
     let alpha = predictionsDict[0].data[idx];
     tensorImage.data[i + 3] = alpha * 255;
   }
 
+  tensorImage = await imageDataResize(
+    tensorImage,
+    imageData.width,
+    imageData.height
+  );
+
+  for (let i = 0; i < imageData.data.length; i += 4) {
+    let idx = i + 3;
+    if (tensorImage.data[idx] === 0) {
+      imageData.data[idx - 3] = 0;
+      imageData.data[idx - 2] = 0;
+      imageData.data[idx - 1] = 0;
+    }
+    imageData.data[idx] = tensorImage.data[idx];
+  }
+
   const [width, height] = calculateProportionalSize(
     imageData.width,
     imageData.height,
-    resolution,
-    resolution
+    MAX_RESOLUTION,
+    MAX_RESOLUTION
   );
+  if (width !== imageData.width || height !== imageData.height) {
+    imageData = await imageDataResize(imageData, width, height);
+  }
 
-  const dst_width = Math.min(width, src_width);
-  const dst_height = Math.min(height, src_height);
-
-  tensorImage = await imageDataResize(tensorImage, dst_width, dst_height);
   if (config.progress) config.progress('compute:inference', 1, 1);
-  return tensorImage;
+  return imageData;
 }
